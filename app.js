@@ -351,7 +351,7 @@ function updateSaltUi(state, elements) {
 function renderGeneratedPassword(state, elements) {
     if (!state.generatedPassword) {
         elements.generatedPasswordOutput.textContent = "Salt, site name, and master password are required.";
-        elements.revealPasswordButton.textContent = "Reveal password";
+        elements.revealPasswordButton.classList.toggle("strike", false);
         elements.revealPasswordButton.disabled = true;
         elements.copyPasswordButton.disabled = true;
         return;
@@ -676,7 +676,7 @@ export function startApp(documentRoot = document) {
     elements.toggleMasterPasswordButton.addEventListener("click", () => {
         state.masterPasswordVisible = !state.masterPasswordVisible;
         elements.masterPasswordInput.type = state.masterPasswordVisible ? "text" : "password";
-        elements.toggleMasterPasswordButton.textContent = state.masterPasswordVisible ? "Hide" : "Show";
+        elements.toggleMasterPasswordButton.classList.toggle("strike", state.masterPasswordVisible);
         resetInactivityTimer(state, elements);
     });
 
@@ -686,13 +686,13 @@ export function startApp(documentRoot = document) {
         }
 
         state.passwordVisible = !state.passwordVisible;
-        elements.revealPasswordButton.textContent = state.passwordVisible ? "Hide password" : "Reveal password";
+        elements.revealPasswordButton.classList.toggle("strike", state.passwordVisible);
         clearRevealTimer(state);
 
         if (state.passwordVisible) {
             state.revealTimer = setTimeout(() => {
                 state.passwordVisible = false;
-                elements.revealPasswordButton.textContent = "Reveal password";
+                elements.revealPasswordButton.classList.toggle("strike", state.passwordVisible);
                 renderGeneratedPassword(state, elements);
             }, REVEAL_TIMEOUT_MS);
         }
@@ -734,7 +734,7 @@ export function startApp(documentRoot = document) {
         elements.siteNameInput.value = "";
         elements.masterPasswordInput.value = "";
         state.passwordVisible = false;
-        elements.revealPasswordButton.textContent = "Reveal password";
+        elements.revealPasswordButton.classList.toggle("strike", state.passwordVisible);
         clearRevealTimer(state);
         await clearClipboardBestEffort();
         clearClipboardTimer(state);

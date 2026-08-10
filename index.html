@@ -1,175 +1,180 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#111111">
-    <title>Mellon password manager</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="icon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="pico.min.css">
-    <style>
-        :root {
-            color-scheme: light dark;
-        }
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Mellon password manager</title>
+        <link rel="manifest" href="manifest.json" />
+        <link rel="icon" href="icon.svg" type="image/svg+xml" />
+        <link rel="stylesheet" href="pico.min.css" />
+        <style>
+            output[role="status"] {
+                display: block;
+                min-height: 3rem;
+                padding: 0.875rem 1rem;
+                border: 1px solid var(--muted-border-color);
+                border-radius: var(--border-radius);
+                background: var(--card-background-color);
+                white-space: pre-wrap;
+                word-break: break-word;
+                font-family: var(--font-family);
+            }
 
-        body {
-            padding-block: 2rem 4rem;
-        }
+            .fingerprint {
+                display: inline-block;
+                min-width: 6ch;
+                letter-spacing: 0.08em;
+            }
+            .fingerprint-label {
+                min-width: 15ch;
+                pointer-events: none; /* TODO: use something else instead of a button */
+                padding-left: 1px;
+                padding-right: 1px;
+            }
+            .status-line {
+                min-height: 1.5rem;
+            }
+            .strike {
+                text-decoration: line-through;
+            }
+            .toggle-pass {
+                padding: 0 1em;
+            }
+        </style>
+    </head>
+    <body>
+        <main class="container">
+            <header>
+                <h1>Mellon</h1>
+                <p>
+                    Offline, installable proof of concept for deterministic
+                    password generation.
+                </p>
+            </header>
 
-        main {
-            max-width: 56rem;
-        }
-
-        output[role="status"] {
-            display: block;
-            min-height: 3rem;
-            padding: 0.875rem 1rem;
-            border: 1px solid var(--muted-border-color);
-            border-radius: var(--border-radius);
-            background: var(--card-background-color);
-            white-space: pre-wrap;
-            word-break: break-word;
-            font-family: var(--font-family);
-        }
-
-        .fingerprint {
-            display: inline-block;
-            min-width: 6ch;
-            letter-spacing: 0.08em;
-        }
-
-        .status-line {
-            min-height: 1.5rem;
-        }
-
-
-    </style>
-</head>
-<body>
-    <main class="container">
-        <header>
-            <h1>Mellon</h1>
-            <p>Offline, installable proof of concept for deterministic password generation.</p>
-        </header>
-
-        <section aria-labelledby="salt-heading">
-            <article>
-                <details id="salt-details">
-                    <summary>
-                        <!--<h2 id="salt-heading">Salt</h2>-->
-                        <span id="salt-summary">No salt stored yet.</span>
-                        <span aria-hidden="true"> · </span>
-                        <span id="salt-fingerprint" class="fingerprint">—</span>
-                    </summary>
-                    <form id="salt-form">
-                        <label for="salt-input">Salt</label>
-                        <input
-                            id="salt-input"
-                            name="salt"
-                            type="password"
-                            autocomplete="off"
-                            autocapitalize="off"
-                            autocorrect="off"
-                            spellcheck="false"
-                            aria-describedby="salt-help"
-                        >
-                        <small id="salt-help">Leading and trailing whitespace is trimmed. Salt is required.</small>
-                        <p>
+            <section aria-labelledby="salt-heading">
+                <article>
+                    <details id="salt-details">
+                        <summary>
+                            <span id="salt-summary">No salt stored yet.</span>
+                            <span aria-hidden="true"> · </span>
+                            <span id="salt-fingerprint" class="fingerprint">—</span>
+                        </summary>
+                        <form id="salt-form">
+                            <input
+                                id="salt-input"
+                                name="salt"
+                                type="password"
+                                autocomplete="off"
+                                autocapitalize="off"
+                                autocorrect="off"
+                                spellcheck="false"
+                                aria-describedby="salt-help"
+                            />
+                            <small id="salt-help">Salt is required</small>
                             <button id="save-salt-button" type="submit">Save salt</button>
                             <button id="generate-salt-button" type="button" class="secondary">Generate random salt</button>
                             <button id="cancel-salt-button" type="button" class="secondary">Close</button>
+                        </form>
+                    </details>
+                </article>
+            </section>
+
+            <section aria-labelledby="generator-heading">
+                <article>
+                    <form id="password-form">
+                        <label for="site-name-input">Site name</label>
+                        <fieldset class="input-with-fingerprint" role="group">
+                            <input
+                                id="site-name-input"
+                                name="siteName"
+                                type="text"
+                                list="site-name-list"
+                                placeholder="example.com"
+                                pattern="[a-zA-Z0-9@:.]+"
+                                autocapitalize="off"
+                                autocorrect="off"
+                                spellcheck="false"
+                                aria-describedby="site-help"
+                            />
+                            <datalist id="site-name-list"></datalist>
+                            <button type="button" class="fingerprint-label">
+                                <span id="site-fingerprint" class="fingerprint">—</span>
+                            </button>
+                        </fieldset>
+                        <small id="site-help">
+                            Allowed characters: <code>a-z</code> <code>A-Z</code> <code>0-9</code> <code>@</code> <code>:</code> <code>.</code>
+                        </small>
+                        <details>
+                            <summary>Configuration</summary>
+                            <fieldset>
+                                <label>
+                                    <input id="disable-spaces-input" name="disableSpaces" type="checkbox" />
+                                    Disable spaces
+                                </label>
+
+                                <label>
+                                    <input id="enable-numbers-input" name="enableNumbers" type="checkbox" />
+                                    Enable numbers
+                                </label>
+
+                                <label for="symbol-mode-select" >Special symbols</label>
+                                <select id="symbol-mode-select" name="symbolMode">
+                                    <option value="none" selected>No symbols</option>
+                                    <option value="small">Small set</option>
+                                    <option value="large">Large set</option>
+                                </select>
+
+                                <label for="length-mode-select">Length</label>
+                                <select id="length-mode-select" name="lengthMode">
+                                    <option value="unset" selected>
+                                        Default
+                                    </option>
+                                    <option value="11">11</option>
+                                    <option value="15">15</option>
+                                </select>
+                            </fieldset>
+                        </details>
+
+                        <label for="master-password-input">Master password</label>
+                        <fieldset class="input-with-fingerprint" role="group">
+                            <input
+                                id="master-password-input"
+                                name="masterPassword"
+                                type="password"
+                                autocomplete="off"
+                                autocapitalize="off"
+                                autocorrect="off"
+                                spellcheck="false"
+                            />
+                            <button id="toggle-master-password-button" type="button" class="toggle-pass">👁️</button>
+                            <button type="button" class="fingerprint-label">
+                                <span id="master-password-fingerprint" class="fingerprint">—</span>
+                            </button>
+                        </fieldset>
+
+                        <label for="generated-password-output">Generated password</label>
+
+                        <fieldset role="group">
+                            <output id="generated-password-output" role="status" aria-live="polite">
+                                Salt, site name, and master password are required.
+                            </output>
+                            <button id="reveal-password-button" type="button" class="toggle-pass" disabled>👁️</button>
+                        </fieldset>
+                        <p id="form-status" class="status-line">
+                            <small>Waiting for input.</small>
+                        </p>
+
+                        <p>
+                            <button id="copy-password-button" type="button" disabled>Copy password</button>
+                            <button id="reset-button" type="reset" class="secondary">Reset</button>
+                            <button id="remove-site-button" type="button" class="secondary" disabled>Remove saved site</button>
                         </p>
                     </form>
-                </details>
-            </article>
-        </section>
+                </article>
+            </section>
+        </main>
 
-        <section aria-labelledby="generator-heading">
-            <article>
-                <h2 id="generator-heading">Password generator</h2>
-                <form id="password-form">
-                    <label for="site-name-input">Site name</label>
-                    <input
-                        id="site-name-input"
-                        name="siteName"
-                        type="text"
-                        list="site-name-list"
-                        placeholder="example.com"
-                        pattern="[a-zA-Z0-9@:.]+"
-                        autocapitalize="off"
-                        autocorrect="off"
-                        spellcheck="false"
-                        aria-describedby="site-help"
-                    >
-                    <small id="site-help">Allowed characters: <code>a-z</code> <code>A-Z</code> <code>0-9</code> <code>@</code> <code>:</code> <code>.</code></small>
-                    <datalist id="site-name-list"></datalist>
-                    <p>
-                        <strong>Fingerprint:</strong>
-                        <span id="site-fingerprint" class="fingerprint">—</span>
-                    </p>
-
-                    <fieldset>
-                        <legend>Configuration</legend>
-
-                        <label>
-                            <input id="disable-spaces-input" name="disableSpaces" type="checkbox">
-                            Disable spaces
-                        </label>
-
-                        <label>
-                            <input id="enable-numbers-input" name="enableNumbers" type="checkbox">
-                            Enable numbers
-                        </label>
-
-                        <label for="symbol-mode-select">Special symbols</label>
-                        <select id="symbol-mode-select" name="symbolMode">
-                            <option value="none" selected>No symbols</option>
-                            <option value="small">Small set</option>
-                            <option value="large">Large set</option>
-                        </select>
-
-                        <label for="length-mode-select">Length</label>
-                        <select id="length-mode-select" name="lengthMode">
-                            <option value="unset" selected>Default</option>
-                            <option value="11">11</option>
-                            <option value="15">15</option>
-                        </select>
-                    </fieldset>
-
-                    <label for="master-password-input">Master password</label>
-                    <div class="grid">
-                        <input
-                            id="master-password-input"
-                            name="masterPassword"
-                            type="password"
-                            autocomplete="off"
-                            autocapitalize="off"
-                            autocorrect="off"
-                            spellcheck="false"
-                        >
-                        <button id="toggle-master-password-button" type="button" class="secondary">Show</button>
-                    </div>
-                    <p>
-                        <strong>Fingerprint:</strong>
-                        <span id="master-password-fingerprint" class="fingerprint">—</span>
-                    </p>
-
-                    <label for="generated-password-output">Generated password</label>
-                    <output id="generated-password-output" role="status" aria-live="polite">Salt, site name, and master password are required.</output>
-                    <p id="form-status" class="status-line"><small>Waiting for input.</small></p>
-
-                    <p>
-                        <button id="reveal-password-button" type="button" disabled>Reveal password</button>
-                        <button id="copy-password-button" type="button" disabled>Copy password</button>
-                        <button id="reset-button" type="reset" class="secondary">Reset</button>
-                        <button id="remove-site-button" type="button" class="secondary" disabled>Remove saved site</button>
-                    </p>
-                </form>
-            </article>
-        </section>
-    </main>
-
-    <script type="module" src="app.js"></script>
-</body>
+        <script type="module" src="app.js"></script>
+    </body>
 </html>
