@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title>Mellon icon</title>
+  <desc>Stylized keyhole inside a rounded square</desc>
+  <rect width="256" height="256" rx="48" fill="#111111"/>
+  <path d="M128 52c-29.823 0-54 24.177-54 54 0 18.928 9.745 35.579 24.5 45.226V204a10 10 0 0 0 10 10h39a10 10 0 0 0 10-10v-52.774C172.255 141.579 182 124.928 182 106c0-29.823-24.177-54-54-54Zm0 24c16.569 0 30 13.431 30 30s-13.431 30-30 30-30-13.431-30-30 13.431-30 30-30Z" fill="#f5d742"/>
+</svg>
