@@ -62,16 +62,19 @@
                         </summary>
                         <p><strong>Warning: modifying the salt will change all your passwords. Do not change it unless you know what you're doing.</strong></p>
                         <form id="salt-form">
-                            <input
-                                id="salt-input"
-                                name="salt"
-                                type="password"
-                                autocomplete="off"
-                                autocapitalize="off"
-                                autocorrect="off"
-                                spellcheck="false"
-                                aria-describedby="salt-help"
-                            />
+                            <fieldset role="group">
+                                <input
+                                    id="salt-input"
+                                    name="salt"
+                                    type="password"
+                                    autocomplete="off"
+                                    autocapitalize="off"
+                                    autocorrect="off"
+                                    spellcheck="false"
+                                    aria-describedby="salt-help"
+                                />
+                                <button id="toggle-salt-button" type="button" class="toggle-pass">👁️</button>
+                            </fieldset>
                             <small id="salt-help">Salt is required</small>
                             <button id="save-salt-button" type="submit">Save salt</button>
                             <button id="generate-salt-button" type="button" class="secondary">Generate random salt</button>

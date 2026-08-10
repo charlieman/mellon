@@ -278,6 +278,7 @@ function makeDefaultState(storage) {
         revealTimer: null,
         clipboardTimer: null,
         inactivityTimer: null,
+        saltVisible: false,
         masterPasswordVisible: false,
         passwordVisible: false,
     };
@@ -422,6 +423,9 @@ function clearSensitiveInputs(state, elements) {
     elements.siteNameInput.value = "";
     elements.masterPasswordInput.value = "";
     elements.saltInput.value = "";
+    state.saltVisible = false;
+    elements.saltInput.type = "password";
+    elements.toggleSaltButton.classList.toggle("strike", state.saltVisible);
     state.generatedPassword = "";
     state.passwordVisible = false;
     clearRevealTimer(state);
@@ -530,6 +534,7 @@ function collectElements(documentRoot) {
         saltFingerprint: documentRoot.getElementById("salt-fingerprint"),
         saltForm: documentRoot.getElementById("salt-form"),
         saltInput: documentRoot.getElementById("salt-input"),
+        toggleSaltButton: documentRoot.getElementById("toggle-salt-button"),
         saveSaltButton: documentRoot.getElementById("save-salt-button"),
         generateSaltButton: documentRoot.getElementById("generate-salt-button"),
         cancelSaltButton: documentRoot.getElementById("cancel-salt-button"),
@@ -602,6 +607,9 @@ export function startApp(documentRoot = document) {
             elements.saltInput.value = state.storedSalt;
         } else {
             elements.saltInput.value = "";
+            state.saltVisible = false;
+            elements.saltInput.type = "password";
+            elements.toggleSaltButton.classList.toggle("strike", state.saltVisible);
         }
 
         updateSaltUi(state, elements);
@@ -674,6 +682,13 @@ export function startApp(documentRoot = document) {
             persistCurrentSiteConfig(state, elements);
             await onSensitiveInput();
         });
+    });
+
+    elements.toggleSaltButton.addEventListener("click", () => {
+        state.saltVisible = !state.saltVisible;
+        elements.saltInput.type = state.saltVisible ? "text" : "password";
+        elements.toggleSaltButton.classList.toggle("strike", state.saltVisible);
+        resetInactivityTimer(state, elements);
     });
 
     elements.toggleMasterPasswordButton.addEventListener("click", () => {
