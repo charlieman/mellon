@@ -349,6 +349,10 @@ function updateSaltUi(state, elements) {
 }
 
 function renderGeneratedPassword(state, elements) {
+    void fingerprintFromText(state.generatedPassword).then((fingerprint) => {
+        elements.generatedPasswordFingerprint.textContent = fingerprint;
+    });
+
     if (!state.generatedPassword) {
         elements.generatedPasswordOutput.textContent = "Salt, site name, and master password are required.";
         elements.revealPasswordButton.classList.toggle("strike", false);
@@ -542,6 +546,7 @@ function collectElements(documentRoot) {
         toggleMasterPasswordButton: documentRoot.getElementById("toggle-master-password-button"),
         masterPasswordFingerprint: documentRoot.getElementById("master-password-fingerprint"),
         generatedPasswordOutput: documentRoot.getElementById("generated-password-output"),
+        generatedPasswordFingerprint: documentRoot.getElementById("generated-password-fingerprint"),
         formStatus: documentRoot.getElementById("form-status"),
         revealPasswordButton: documentRoot.getElementById("reveal-password-button"),
         copyPasswordButton: documentRoot.getElementById("copy-password-button"),

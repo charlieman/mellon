@@ -60,6 +60,7 @@
                             <span aria-hidden="true"> · </span>
                             <span id="salt-fingerprint" class="fingerprint">—</span>
                         </summary>
+                        <p><mark>Warning: modifying the salt will change all your passwords. Do not change it unless you know what you're doing.</mark></p>
                         <form id="salt-form">
                             <input
                                 id="salt-input"
@@ -160,6 +161,9 @@
                                 Salt, site name, and master password are required.
                             </output>
                             <button id="reveal-password-button" type="button" class="toggle-pass" disabled>👁️</button>
+                            <button type="button" class="fingerprint-label">
+                                <span id="generated-password-fingerprint" class="fingerprint">—</span>
+                            </button>
                         </fieldset>
                         <p id="form-status" class="status-line">
                             <small>Waiting for input.</small>
