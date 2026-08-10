@@ -10,6 +10,7 @@
         <style>
             output[role="status"] {
                 display: block;
+                width: 100%;
                 min-height: 3rem;
                 padding: 0.875rem 1rem;
                 border: 1px solid var(--muted-border-color);
@@ -28,11 +29,7 @@
             .fingerprint-label {
                 min-width: 15ch;
                 pointer-events: none; /* TODO: use something else instead of a button */
-                padding-left: 1px;
-                padding-right: 1px;
-            }
-            .status-line {
-                min-height: 1.5rem;
+                padding: 1px;
             }
             .strike {
                 text-decoration: line-through;
@@ -165,7 +162,7 @@
                                 <span id="generated-password-fingerprint" class="fingerprint">—</span>
                             </button>
                         </fieldset>
-                        <p id="form-status" class="status-line">
+                        <p id="form-status">
                             <small>Waiting for input.</small>
                         </p>
 
