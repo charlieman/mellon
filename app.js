@@ -11,9 +11,9 @@ const SYMBOL_SETS = {
 };
 
 const DEFAULT_CONFIG = {
-    disableSpaces: false,
-    enableNumbers: false,
-    symbolMode: "none",
+    enableSpaces: true,
+    enableNumbers: true,
+    symbolMode: "small",
     lengthMode: "unset",
 };
 
@@ -58,9 +58,7 @@ export function getSymbolsForMode(symbolMode) {
 export function buildSeparatorPool(config = DEFAULT_CONFIG) {
     const pool = [];
 
-    if (config.disableSpaces) {
-        pool.push(...DIGITS);
-    } else {
+    if (config.enableSpaces) {
         pool.push(" ");
     }
 
@@ -299,7 +297,7 @@ function saveSiteConfigs(state) {
 
 function getCurrentConfig(elements) {
     return {
-        disableSpaces: elements.disableSpacesInput.checked,
+        enableSpaces: elements.enableSpacesInput.checked,
         enableNumbers: elements.enableNumbersInput.checked,
         symbolMode: elements.symbolModeSelect.value,
         lengthMode: elements.lengthModeSelect.value,
@@ -307,7 +305,7 @@ function getCurrentConfig(elements) {
 }
 
 function setConfigInputs(elements, config = DEFAULT_CONFIG) {
-    elements.disableSpacesInput.checked = Boolean(config.disableSpaces);
+    elements.enableSpacesInput.checked = Boolean(config.enableSpaces);
     elements.enableNumbersInput.checked = Boolean(config.enableNumbers);
     elements.symbolModeSelect.value = config.symbolMode ?? DEFAULT_CONFIG.symbolMode;
     elements.lengthModeSelect.value = config.lengthMode ?? DEFAULT_CONFIG.lengthMode;
@@ -354,7 +352,7 @@ function renderGeneratedPassword(state, elements) {
     });
 
     if (!state.generatedPassword) {
-        elements.generatedPasswordOutput.textContent = "Salt, site name, and master password are required.";
+        elements.generatedPasswordOutput.textContent = "";
         elements.revealPasswordButton.classList.toggle("strike", false);
         elements.revealPasswordButton.disabled = true;
         elements.copyPasswordButton.disabled = true;
@@ -365,7 +363,7 @@ function renderGeneratedPassword(state, elements) {
     elements.copyPasswordButton.disabled = false;
 
     if (!state.passwordVisible) {
-        elements.generatedPasswordOutput.textContent = "*".repeat(state.generatedPassword.length);
+        elements.generatedPasswordOutput.textContent = "•".repeat(state.generatedPassword.length);
         return;
     }
 
@@ -538,7 +536,7 @@ function collectElements(documentRoot) {
         siteNameInput: documentRoot.getElementById("site-name-input"),
         siteNameList: documentRoot.getElementById("site-name-list"),
         siteFingerprint: documentRoot.getElementById("site-fingerprint"),
-        disableSpacesInput: documentRoot.getElementById("disable-spaces-input"),
+        enableSpacesInput: documentRoot.getElementById("enable-spaces-input"),
         enableNumbersInput: documentRoot.getElementById("enable-numbers-input"),
         symbolModeSelect: documentRoot.getElementById("symbol-mode-select"),
         lengthModeSelect: documentRoot.getElementById("length-mode-select"),
@@ -667,7 +665,7 @@ export function startApp(documentRoot = document) {
     });
 
     [
-        elements.disableSpacesInput,
+        elements.enableSpacesInput,
         elements.enableNumbersInput,
         elements.symbolModeSelect,
         elements.lengthModeSelect,

@@ -17,8 +17,8 @@
                 border-radius: var(--border-radius);
                 background: var(--card-background-color);
                 white-space: pre-wrap;
-                word-break: break-word;
-                font-family: var(--font-family);
+                word-break: keep-all;
+                font-family: monospace;
             }
 
             .fingerprint {
@@ -36,6 +36,9 @@
             }
             .toggle-pass {
                 padding: 0 1em;
+            }
+            .large {
+                font-size: 1.8em;
             }
         </style>
     </head>
@@ -57,7 +60,7 @@
                             <span aria-hidden="true"> · </span>
                             <span id="salt-fingerprint" class="fingerprint">—</span>
                         </summary>
-                        <p><mark>Warning: modifying the salt will change all your passwords. Do not change it unless you know what you're doing.</mark></p>
+                        <p><strong>Warning: modifying the salt will change all your passwords. Do not change it unless you know what you're doing.</strong></p>
                         <form id="salt-form">
                             <input
                                 id="salt-input"
@@ -107,8 +110,8 @@
                             <summary>Configuration</summary>
                             <fieldset>
                                 <label>
-                                    <input id="disable-spaces-input" name="disableSpaces" type="checkbox" />
-                                    Disable spaces
+                                    <input id="enable-spaces-input" name="enableSpaces" type="checkbox" />
+                                    Enable spaces
                                 </label>
 
                                 <label>
@@ -118,8 +121,8 @@
 
                                 <label for="symbol-mode-select" >Special symbols</label>
                                 <select id="symbol-mode-select" name="symbolMode">
-                                    <option value="none" selected>No symbols</option>
-                                    <option value="small">Small set</option>
+                                    <option value="none">No symbols</option>
+                                    <option value="small" selected>Small set</option>
                                     <option value="large">Large set</option>
                                 </select>
 
@@ -153,12 +156,11 @@
 
                         <label for="generated-password-output">Generated password</label>
 
+                        <output id="generated-password-output" role="status" aria-live="polite" class="large">
+                        </output>
                         <fieldset role="group">
-                            <output id="generated-password-output" role="status" aria-live="polite">
-                                Salt, site name, and master password are required.
-                            </output>
                             <button id="reveal-password-button" type="button" class="toggle-pass" disabled>👁️</button>
-                            <button type="button" class="fingerprint-label">
+                            <button type="button" class="fingerprint-label large">
                                 <span id="generated-password-fingerprint" class="fingerprint">—</span>
                             </button>
                         </fieldset>

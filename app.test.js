@@ -28,10 +28,8 @@ describe("isValidSiteName", () => {
 });
 
 describe("buildSeparatorPool", () => {
-    test("uses digits when spaces are disabled", () => {
-        expect(buildSeparatorPool({ disableSpaces: true, enableNumbers: false, symbolMode: "none" })).toEqual([
-            "2", "3", "4", "5", "6", "7", "8", "9",
-        ]);
+    test("omits spaces when they are disabled", () => {
+        expect(buildSeparatorPool({ enableSpaces: false, enableNumbers: false, symbolMode: "none" })).toEqual([]);
     });
 });
 
@@ -40,7 +38,7 @@ describe("createPasswordFromHash", () => {
 
     test("creates a fixed length password for mode 11", () => {
         const password = createPasswordFromHash(hash, {
-            disableSpaces: false,
+            enableSpaces: true,
             enableNumbers: false,
             symbolMode: "none",
             lengthMode: "11",
@@ -51,7 +49,7 @@ describe("createPasswordFromHash", () => {
 
     test("creates a fixed length password for mode 15", () => {
         const password = createPasswordFromHash(hash, {
-            disableSpaces: false,
+            enableSpaces: true,
             enableNumbers: true,
             symbolMode: "small",
             lengthMode: "15",
@@ -62,7 +60,7 @@ describe("createPasswordFromHash", () => {
 
     test("creates at least 16 characters for unset length mode", () => {
         const password = createPasswordFromHash(hash, {
-            disableSpaces: false,
+            enableSpaces: true,
             enableNumbers: false,
             symbolMode: "none",
             lengthMode: "unset",
