@@ -10,7 +10,7 @@ const accentMap: Record<string, string> = {
 };
 
 function cleanText(filePath: string): string[] {
-  const text = fs.readFileSync(filePath, 'utf8');
+  const text: string = fs.readFileSync(filePath, 'utf8');
   return [...new Set(
     text.split('\n')
       .filter(Boolean)
@@ -32,4 +32,9 @@ export function _adjectives(): string[] {
 
 export function _verbs(): string[] {
   return cleanText(__dirname + '/../_docs/verbs.txt');
+}
+
+export function _emojis(): string[] {
+  const text: string = fs.readFileSync(__dirname + '/../_docs/emojis.txt', 'utf8');
+  return [...new Set(text.split('\n').filter(Boolean))];
 }

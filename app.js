@@ -1,4 +1,4 @@
-import { adjectives, nouns, verbs } from "./words.js";
+import { adjectives, nouns, verbs, emojis } from "./words.js";
 
 const STORAGE_KEYS = {
     salt: "mellon.salt",
@@ -27,7 +27,7 @@ const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
 const WORD_LISTS = { nouns, adjectives, verbs };
 
 // TODO: Review and lock this emoji list once the product decisions around versioning and immutability are made.
-const EMOJI_POOL = ["🍋", "🌰", "🛡️", "🔑", "🌙", "⭐", "🦊", "🐝", "🌊", "🔥", "🍀", "🪵"];
+const EMOJI_POOL = emojis;
 
 const LENGTH_PLANS = {
     unset: { targetLength: null, minLength: 16, maxLength: 40, roles: ["nouns", "adjectives", "verbs", "nouns"] },
