@@ -194,6 +194,30 @@ describe("password entropy", () => {
         expect(verbWords.size).toBe(8);
         expect(entropy).toBeCloseTo(12, 10);
     });
+
+    test("100-word noun and adjective lists in length 11 mode yield 46.60 to 51.71 bits when words are 4 to 6 characters", () => {
+        const letterAlphabetSize = 26;
+        const fillDigitAlphabetSize = 8;
+        const possibleWordLengths = [4, 5, 6];
+        const entropies = [];
+
+        for (const nounLength of possibleWordLengths) {
+            for (const adjectiveLength of possibleWordLengths) {
+                const rawLetterCount = nounLength + adjectiveLength;
+                const visibleLetterCount = Math.min(11, rawLetterCount);
+                const fillDigitCount = Math.max(0, 11 - rawLetterCount);
+                const entropy =
+                    visibleLetterCount * Math.log2(letterAlphabetSize) +
+                    fillDigitCount * Math.log2(fillDigitAlphabetSize);
+
+                entropies.push(entropy);
+            }
+        }
+
+        expect(Math.min(...entropies)).toBeCloseTo(46.6035177451, 10);
+        expect(Math.max(...entropies)).toBeCloseTo(51.7048368996, 10);
+        expect(Math.min(...entropies)).toBeGreaterThan(40);
+    });
 });
 
 describe("splitPasswordForDisplay", () => {

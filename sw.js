@@ -1,8 +1,9 @@
-const CACHE_NAME = "mellon-poc-v1";
+const CACHE_NAME = "mellon-poc-v2";
 const ASSETS = [
     "./",
     "./index.html",
     "./app.js",
+    "./words.js",
     "./manifest.json",
     "./icon.svg",
     "./pico.min.css",

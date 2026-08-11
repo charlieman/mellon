@@ -1,7 +1,17 @@
-import { nouns, adjectives, verbs } from './wordlist.ts' with {type: 'macro'};
+import { _nouns, _adjectives, _verbs } from './wordlist.ts' with {type: 'macro'};
 
-const _nouns = nouns();
-const _adjectives = adjectives();
-const _verbs = verbs();
+export const nouns = _nouns();
+export const adjectives = _adjectives();
+export const verbs = _verbs();
 
-console.log(_nouns.length, _adjectives.length, _verbs.length);
+console.log({
+  nouns: Array.from(new Set(nouns.join("").split(""))).sort().join(""),
+  adjectives: Array.from(new Set(adjectives.join("").split(""))).sort().join(""),
+  verbs: Array.from(new Set(verbs.join("").split(""))).sort().join(""),
+});
+
+console.log({
+  nouns: [nouns.length, Array.from(new Set(nouns.join("").split(""))).length],
+  adjectives: [adjectives.length, Array.from(new Set(adjectives.join("").split(""))).length],
+  verbs: [verbs.length, Array.from(new Set(verbs.join("").split(""))).length],
+});

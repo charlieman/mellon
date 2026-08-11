@@ -22,14 +22,14 @@ function cleanText(filePath: string): string[] {
   )].sort();
 }
 
-export function nouns(): string[] {
+export function _nouns(): string[] {
   return cleanText(__dirname + '/../_docs/nouns.txt');
 }
 
-export function adjectives(): string[] {
+export function _adjectives(): string[] {
   return cleanText(__dirname + '/../_docs/adjectives.txt');
 }
 
-export function verbs(): string[] {
+export function _verbs(): string[] {
   return cleanText(__dirname + '/../_docs/verbs.txt');
 }

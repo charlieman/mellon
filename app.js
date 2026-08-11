@@ -1,3 +1,5 @@
+import { adjectives, nouns, verbs } from "./words.js";
+
 const STORAGE_KEYS = {
     salt: "mellon.salt",
     siteConfigs: "mellon.site-configs",
@@ -22,12 +24,7 @@ const REVEAL_TIMEOUT_MS = 5_000;
 const CLIPBOARD_CLEAR_TIMEOUT_MS = 30_000;
 const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
 
-// TODO: Review and lock these lists once the product decisions around versioning and immutability are made.
-const WORD_LISTS = {
-    nouns: ["lago", "nube", "faro", "carta", "libro", "campo", "miel", "fuego"],
-    adjectives: ["claro", "suave", "bravo", "lento", "corto", "dulce", "firme", "vasto"],
-    verbs: ["canta", "salta", "gira", "fluye", "brilla", "vuela", "sube", "anda"],
-};
+const WORD_LISTS = { nouns, adjectives, verbs };
 
 // TODO: Review and lock this emoji list once the product decisions around versioning and immutability are made.
 const EMOJI_POOL = ["🍋", "🌰", "🛡️", "🔑", "🌙", "⭐", "🦊", "🐝", "🌊", "🔥", "🍀", "🪵"];
@@ -565,7 +562,7 @@ async function registerServiceWorker() {
     }
 
     try {
-        // await navigator.serviceWorker.register("./sw.js");
+        await navigator.serviceWorker.register("./sw.js");
     } catch (error) {
         console.error("Service worker registration failed", error);
     }
