@@ -46,11 +46,20 @@
                 align-items: center;
                 justify-content: center;
             }
-            .strike {
-                text-decoration: line-through;
-            }
             .toggle-pass {
                 padding: 0 1em;
+                position:relative;
+            }
+            .toggle-pass.strike::after {
+                content: "";
+                position: absolute;
+                width: 50px;
+                left: calc(50% - 25px);
+                right: 0;
+                height: 5px;
+                top: calc(50% - 2.5px);
+                background: #3d3333;
+                transform: rotate(-45deg);
             }
             .large {
                 font-size: 1.8em;
