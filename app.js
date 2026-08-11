@@ -160,13 +160,29 @@ export function splitPasswordForDisplay(password) {
     return tokens;
 }
 
-export async function sha256Bytes(text) {
+async function sha256Bytes(text) {
     const data = new TextEncoder().encode(text);
     const digest = await crypto.subtle.digest("SHA-256", data);
     return new Uint8Array(digest);
 }
 
-export async function fingerprintFromText(text) {
+function fingerprintFromBytes(bytes) {
+    if (!bytes?.length) {
+        return "—";
+    }
+
+    const emojiCount = 4;
+    const parts = [];
+
+    for (let index = 0; index < emojiCount; index += 1) {
+        const emoji = EMOJI_POOL[readUint32Wrapped(bytes, index * 4) % EMOJI_POOL.length];
+        parts.push(emoji);
+    }
+
+    return parts.join("");
+}
+
+async function fingerprintFromText(text) {
     const normalized = normalizeTrimmed(text);
 
     if (!normalized) {
@@ -174,15 +190,7 @@ export async function fingerprintFromText(text) {
     }
 
     const digest = await sha256Bytes(normalized);
-    const emojiCount = 4;
-    const parts = [];
-
-    for (let index = 0; index < emojiCount; index += 1) {
-        const emoji = EMOJI_POOL[readUint32Wrapped(digest, index * 4) % EMOJI_POOL.length];
-        parts.push(emoji);
-    }
-
-    return parts.join("");
+    return fingerprintFromBytes(digest);
 }
 
 export async function derivePasswordHash({ salt, siteName, masterPassword }) {
@@ -230,6 +238,23 @@ export async function generatePassword({ salt, siteName, masterPassword, config 
     return createPasswordFromHash(hash, config);
 }
 
+async function fingerprintFromMasterPassword({ salt, masterPassword }) {
+    const normalizedSalt = normalizeTrimmed(salt);
+    const normalizedMasterPassword = normalizeTrimmed(masterPassword);
+
+    if (!normalizedSalt || !normalizedMasterPassword) {
+        return "—";
+    }
+
+    const hash = await derivePasswordHash({
+        salt: normalizedSalt,
+        siteName: "mellon:master-password-fingerprint:v1",
+        masterPassword: normalizedMasterPassword,
+    });
+
+    return fingerprintFromBytes(hash);
+}
+
 function getStorage() {
     try {
         return window.localStorage;
@@ -272,6 +297,7 @@ function makeDefaultState(storage) {
         siteConfigs: loadJson(storage, STORAGE_KEYS.siteConfigs, {}),
         saltEditorOpen: !(storage?.getItem(STORAGE_KEYS.salt) ?? ""),
         generatedPassword: "",
+        generatedPasswordFingerprint: "—",
         revealTimer: null,
         clipboardTimer: null,
         inactivityTimer: null,
@@ -349,9 +375,9 @@ function updateSaltUi(state, elements) {
 }
 
 function renderGeneratedPassword(state, elements) {
-    void fingerprintFromText(state.generatedPassword).then((fingerprint) => {
-        elements.generatedPasswordFingerprint.textContent = fingerprint;
-    });
+    elements.generatedPasswordFingerprint.textContent = state.generatedPassword
+        ? state.generatedPasswordFingerprint
+        : "—";
 
     if (!state.generatedPassword) {
         elements.generatedPasswordOutput.textContent = "";
@@ -377,14 +403,17 @@ function renderGeneratedPassword(state, elements) {
 }
 
 function setFormStatus(elements, message) {
-    elements.formStatus.innerHTML = `<small>${message}</small>`;
+    elements.formStatus.textContent = message;
 }
 
 async function updateFingerprints(state, elements) {
     const [saltFingerprint, siteFingerprint, masterPasswordFingerprint] = await Promise.all([
         fingerprintFromText(getSaltFingerprintSource(state, elements)),
         fingerprintFromText(elements.siteNameInput.value),
-        fingerprintFromText(elements.masterPasswordInput.value),
+        fingerprintFromMasterPassword({
+            salt: getEffectiveSalt(state, elements),
+            masterPassword: elements.masterPasswordInput.value,
+        }),
     ]);
 
     elements.saltFingerprint.textContent = saltFingerprint;
@@ -427,6 +456,7 @@ function clearSensitiveInputs(state, elements) {
     elements.saltInput.type = "password";
     elements.toggleSaltButton.classList.toggle("strike", state.saltVisible);
     state.generatedPassword = "";
+    state.generatedPasswordFingerprint = "—";
     state.passwordVisible = false;
     clearRevealTimer(state);
     renderGeneratedPassword(state, elements);
@@ -482,6 +512,7 @@ async function updateDerivedState(state, elements) {
 
     if (!salt) {
         state.generatedPassword = "";
+        state.generatedPasswordFingerprint = "—";
         renderGeneratedPassword(state, elements);
         setFormStatus(elements, "Set a salt to generate a password.");
         return;
@@ -489,6 +520,7 @@ async function updateDerivedState(state, elements) {
 
     if (!siteName) {
         state.generatedPassword = "";
+        state.generatedPasswordFingerprint = "—";
         renderGeneratedPassword(state, elements);
         setFormStatus(elements, "Enter a site name.");
         return;
@@ -496,6 +528,7 @@ async function updateDerivedState(state, elements) {
 
     if (!isValidSiteName(siteName)) {
         state.generatedPassword = "";
+        state.generatedPasswordFingerprint = "—";
         renderGeneratedPassword(state, elements);
         setFormStatus(elements, "Site name contains invalid characters.");
         return;
@@ -503,6 +536,7 @@ async function updateDerivedState(state, elements) {
 
     if (!masterPassword) {
         state.generatedPassword = "";
+        state.generatedPasswordFingerprint = "—";
         renderGeneratedPassword(state, elements);
         setFormStatus(elements, "Enter the master password.");
         return;
@@ -511,17 +545,16 @@ async function updateDerivedState(state, elements) {
     persistCurrentSiteConfig(state, elements);
 
     try {
-        state.generatedPassword = await generatePassword({
-            salt,
-            siteName,
-            masterPassword,
-            config: getCurrentConfig(elements),
-        });
+        const config = getCurrentConfig(elements);
+        const hash = await derivePasswordHash({ salt, siteName, masterPassword });
+        state.generatedPassword = createPasswordFromHash(hash, config);
+        state.generatedPasswordFingerprint = fingerprintFromBytes(hash);
         renderGeneratedPassword(state, elements);
         setFormStatus(elements, `Password ready (${state.generatedPassword.length} characters).`);
     } catch (error) {
         console.error(error);
         state.generatedPassword = "";
+        state.generatedPasswordFingerprint = "—";
         renderGeneratedPassword(state, elements);
         setFormStatus(elements, "Password generation failed.");
     }
