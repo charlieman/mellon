@@ -39,6 +39,10 @@ export function normalizeTrimmed(value = "") {
     return String(value).trim();
 }
 
+export function normalizeMasterPassword(value = "") {
+    return String(value).normalize("NFC");
+}
+
 export function isValidSiteName(siteName) {
     const normalized = normalizeTrimmed(siteName);
     return normalized.length > 0 && SITE_NAME_PATTERN.test(normalized);
@@ -196,7 +200,7 @@ async function fingerprintFromText(text) {
 export async function derivePasswordHash({ salt, siteName, masterPassword }) {
     const normalizedSalt = normalizeTrimmed(salt);
     const normalizedSiteName = normalizeTrimmed(siteName);
-    const normalizedMasterPassword = normalizeTrimmed(masterPassword);
+    const normalizedMasterPassword = normalizeMasterPassword(masterPassword);
 
     const keyMaterial = await crypto.subtle.importKey(
         "raw",
@@ -240,7 +244,7 @@ export async function generatePassword({ salt, siteName, masterPassword, config 
 
 async function fingerprintFromMasterPassword({ salt, masterPassword }) {
     const normalizedSalt = normalizeTrimmed(salt);
-    const normalizedMasterPassword = normalizeTrimmed(masterPassword);
+    const normalizedMasterPassword = normalizeMasterPassword(masterPassword);
 
     if (!normalizedSalt || !normalizedMasterPassword) {
         return "—";
@@ -505,7 +509,7 @@ async function updateDerivedState(state, elements) {
 
     const salt = getEffectiveSalt(state, elements);
     const siteName = normalizeTrimmed(elements.siteNameInput.value);
-    const masterPassword = normalizeTrimmed(elements.masterPasswordInput.value);
+    const masterPassword = normalizeMasterPassword(elements.masterPasswordInput.value);
     const savedSiteName = getExactSavedSiteName(state, elements.siteNameInput.value);
 
     elements.removeSiteButton.disabled = !savedSiteName;
@@ -598,7 +602,7 @@ async function registerServiceWorker() {
     }
 
     try {
-        await navigator.serviceWorker.register("./sw.js");
+        // await navigator.serviceWorker.register("./sw.js");
     } catch (error) {
         console.error("Service worker registration failed", error);
     }
@@ -698,7 +702,7 @@ export function startApp(documentRoot = document) {
 
     elements.masterPasswordInput.addEventListener("input", onSensitiveInput);
     elements.masterPasswordInput.addEventListener("blur", async () => {
-        elements.masterPasswordInput.value = normalizeTrimmed(elements.masterPasswordInput.value);
+        elements.masterPasswordInput.value = normalizeMasterPassword(elements.masterPasswordInput.value);
         await onSensitiveInput();
     });
 

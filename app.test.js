@@ -2,7 +2,9 @@ import { describe, expect, test } from "bun:test";
 import {
     buildSeparatorPool,
     createPasswordFromHash,
+    derivePasswordHash,
     isValidSiteName,
+    normalizeMasterPassword,
     normalizeTrimmed,
     splitPasswordForDisplay,
 } from "./app.js";
@@ -54,6 +56,48 @@ function createWordSelectionHash({ nounIndex, adjectiveIndex, verbIndex, trailin
 describe("normalizeTrimmed", () => {
     test("trims leading and trailing whitespace", () => {
         expect(normalizeTrimmed("  abc  ")).toBe("abc");
+    });
+});
+
+describe("normalizeMasterPassword", () => {
+    test("preserves leading and trailing whitespace", () => {
+        expect(normalizeMasterPassword("  abc  ")).toBe("  abc  ");
+    });
+
+    test("normalizes unicode to NFC", () => {
+        expect(normalizeMasterPassword("e\u0301")).toBe("é");
+    });
+});
+
+describe("derivePasswordHash", () => {
+    test("preserves master password whitespace", async () => {
+        const trimmedHash = await derivePasswordHash({
+            salt: "salt",
+            siteName: "example.com",
+            masterPassword: "abc",
+        });
+        const spacedHash = await derivePasswordHash({
+            salt: "salt",
+            siteName: "example.com",
+            masterPassword: "  abc  ",
+        });
+
+        expect(Array.from(spacedHash)).not.toEqual(Array.from(trimmedHash));
+    });
+
+    test("treats canonically equivalent unicode master passwords the same", async () => {
+        const composedHash = await derivePasswordHash({
+            salt: "salt",
+            siteName: "example.com",
+            masterPassword: "é",
+        });
+        const decomposedHash = await derivePasswordHash({
+            salt: "salt",
+            siteName: "example.com",
+            masterPassword: "e\u0301",
+        });
+
+        expect(Array.from(decomposedHash)).toEqual(Array.from(composedHash));
     });
 });
 
