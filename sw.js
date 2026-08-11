@@ -1,4 +1,4 @@
-const CACHE_NAME = "mellon-poc-v3";
+const CACHE_NAME = "mellon-poc-v4";
 const ASSETS = [
     "./",
     "./index.html",

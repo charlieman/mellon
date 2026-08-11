@@ -28,8 +28,19 @@
             }
             .fingerprint-label {
                 min-width: 15ch;
-                pointer-events: none; /* TODO: use something else instead of a button */
                 padding: 1px;
+            }
+            output.fingerprint-label {
+                background: #0B0B0F;
+                border: var(--pico-border-width) solid var(--pico-border-color);
+                border-radius: var(--pico-border-radius);
+                outline: 0;
+                text-align: center;
+                text-decoration: none;
+                line-height: var(--pico-line-height);
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
             .strike {
                 text-decoration: line-through;
@@ -47,8 +58,8 @@
             <header>
                 <h1>Mellon</h1>
                 <p>
-                    Offline, installable proof of concept for deterministic
-                    password generation.
+                    Deterministic password generation. No password is stored.
+                    The emojis help avoid typos in your master password.
                 </p>
             </header>
 
@@ -58,9 +69,14 @@
                         <summary>
                             <span id="salt-summary">No salt stored yet.</span>
                             <span aria-hidden="true"> · </span>
-                            <span id="salt-fingerprint" class="fingerprint">—</span>
+                            <span id="salt-fingerprint" class="fingerprint large">—</span>
                         </summary>
-                        <p><strong>Warning: modifying the salt will change all your passwords. Do not change it unless you know what you're doing.</strong></p>
+                        <p>
+                            The salt is a random value that is used to derive your passwords. Different salts will produce different passwords.
+                        </p>
+                        <p>
+                            <strong>Warning: modifying the salt will change all your passwords. Do not change it unless you know what you're doing.</strong>
+                        </p>
                         <form id="salt-form">
                             <fieldset role="group">
                                 <input
@@ -78,7 +94,7 @@
                             <small id="salt-help">Salt is required</small>
                             <button id="save-salt-button" type="submit">Save salt</button>
                             <button id="generate-salt-button" type="button" class="secondary">Generate random salt</button>
-                            <button id="cancel-salt-button" type="button" class="secondary">Close</button>
+                            <button id="cancel-salt-button" type="button" class="secondary">Cancel</button>
                         </form>
                     </details>
                 </article>
@@ -102,9 +118,9 @@
                                 aria-describedby="site-help"
                             />
                             <datalist id="site-name-list"></datalist>
-                            <button type="button" class="fingerprint-label">
+                            <output class="fingerprint-label">
                                 <span id="site-fingerprint" class="fingerprint">—</span>
-                            </button>
+                            </output>
                         </fieldset>
                         <small id="site-help">
                             Allowed characters: <code>a-z</code> <code>A-Z</code> <code>0-9</code> <code>@</code> <code>:</code> <code>.</code>
@@ -131,9 +147,7 @@
 
                                 <label for="length-mode-select">Length</label>
                                 <select id="length-mode-select" name="lengthMode">
-                                    <option value="unset" selected>
-                                        Default
-                                    </option>
+                                    <option value="unset" selected>Unlimited</option>
                                     <option value="11">11</option>
                                     <option value="15">15</option>
                                 </select>
@@ -152,9 +166,9 @@
                                 spellcheck="false"
                             />
                             <button id="toggle-master-password-button" type="button" class="toggle-pass">👁️</button>
-                            <button type="button" class="fingerprint-label">
+                            <output class="fingerprint-label">
                                 <span id="master-password-fingerprint" class="fingerprint">—</span>
-                            </button>
+                            </output>
                         </fieldset>
 
                         <label for="generated-password-output">Generated password</label>
@@ -163,9 +177,9 @@
                         </output>
                         <fieldset role="group">
                             <button id="reveal-password-button" type="button" class="toggle-pass" disabled>👁️</button>
-                            <button type="button" class="fingerprint-label large">
+                            <output class="fingerprint-label large">
                                 <span id="generated-password-fingerprint" class="fingerprint">—</span>
-                            </button>
+                            </output>
                         </fieldset>
                         <p id="form-status">
                             <small>Waiting for input.</small>

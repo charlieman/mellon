@@ -326,6 +326,10 @@ function getEffectiveSalt(state, elements) {
     return state.storedSalt;
 }
 
+function getSaltFingerprintSource(state, elements) {
+    return state.saltEditorOpen ? elements.saltInput.value : state.storedSalt;
+}
+
 function populateSiteNameList(state, elements) {
     const siteNames = Object.keys(state.siteConfigs).sort((left, right) => left.localeCompare(right));
     elements.siteNameList.replaceChildren(...siteNames.map((siteName) => {
@@ -377,9 +381,8 @@ function setFormStatus(elements, message) {
 }
 
 async function updateFingerprints(state, elements) {
-    const saltFingerprintSource = state.storedSalt || elements.saltInput.value;
     const [saltFingerprint, siteFingerprint, masterPasswordFingerprint] = await Promise.all([
-        fingerprintFromText(saltFingerprintSource),
+        fingerprintFromText(getSaltFingerprintSource(state, elements)),
         fingerprintFromText(elements.siteNameInput.value),
         fingerprintFromText(elements.masterPasswordInput.value),
     ]);
@@ -614,8 +617,11 @@ export function startApp(documentRoot = document) {
     });
 
     elements.cancelSaltButton.addEventListener("click", async () => {
+        elements.saltInput.value = state.storedSalt;
         state.saltEditorOpen = false;
-        elements.saltInput.value = "";
+        state.saltVisible = false;
+        elements.saltInput.type = "password";
+        elements.toggleSaltButton.classList.toggle("strike", state.saltVisible);
         updateSaltUi(state, elements);
         await updateDerivedState(state, elements);
     });
