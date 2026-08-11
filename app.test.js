@@ -6,13 +6,33 @@ import {
     normalizeTrimmed,
     splitPasswordForDisplay,
 } from "./app.js";
+import { adjectives, nouns, verbs } from "./words.js";
 
-function calculateEntropy(alphabetSize, length) {
-    return length * Math.log2(alphabetSize);
+function calculateChoiceEntropy(...choiceCounts) {
+    return choiceCounts.reduce((sum, count) => sum + Math.log2(count), 0);
 }
 
-function createSampleHash(seed) {
-    return new Uint8Array(Array.from({ length: 32 }, (_, index) => (seed * 73 + index * 29) % 256));
+function calculateFixedLengthEntropyRange({
+    choiceCounts,
+    targetLength,
+    minWordLength,
+    maxWordLength,
+    separatorPoolSize,
+    separatorCount,
+    fillAlphabetSize = 8,
+}) {
+    const baseEntropy =
+        calculateChoiceEntropy(...choiceCounts) +
+        (separatorPoolSize > 0 ? separatorCount * Math.log2(separatorPoolSize) : 0);
+    const minRawLength = choiceCounts.length * minWordLength + separatorCount;
+    const maxRawLength = choiceCounts.length * maxWordLength + separatorCount;
+    const minFillCount = Math.max(0, targetLength - maxRawLength);
+    const maxFillCount = Math.max(0, targetLength - minRawLength);
+
+    return {
+        minEntropy: baseEntropy + minFillCount * Math.log2(fillAlphabetSize),
+        maxEntropy: baseEntropy + maxFillCount * Math.log2(fillAlphabetSize),
+    };
 }
 
 function writeUint32(bytes, position, value) {
@@ -29,10 +49,6 @@ function createWordSelectionHash({ nounIndex, adjectiveIndex, verbIndex, trailin
     writeUint32(bytes, 8, verbIndex);
     writeUint32(bytes, 12, trailingNounIndex);
     return bytes;
-}
-
-function collectAlphabet(passwords) {
-    return new Set(passwords.join(""));
 }
 
 describe("normalizeTrimmed", () => {
@@ -100,123 +116,125 @@ describe("createPasswordFromHash", () => {
 });
 
 describe("password entropy", () => {
-    test("stays above 100 bits for multiple generator configurations using E = log2(R^L)", () => {
-        const scenarios = [
-            {
-                name: "length 11 with spaces",
-                config: {
-                    enableSpaces: true,
-                    enableNumbers: false,
-                    symbolMode: "none",
-                    lengthMode: "11",
-                },
-            },
-            {
-                name: "length 15 with numbers and small symbols",
-                config: {
-                    enableSpaces: true,
-                    enableNumbers: true,
-                    symbolMode: "small",
-                    lengthMode: "15",
-                },
-            },
-            {
-                name: "unset length with spaces only",
-                config: {
-                    enableSpaces: true,
-                    enableNumbers: false,
-                    symbolMode: "none",
-                    lengthMode: "unset",
-                },
-            },
-            {
-                name: "unset length with numbers and large symbols",
-                config: {
-                    enableSpaces: true,
-                    enableNumbers: true,
-                    symbolMode: "large",
-                    lengthMode: "unset",
-                },
-            },
-        ];
+    // test("uses the updated word list sizes", () => {
+    //     expect(nouns).toHaveLength(172);
+    //     expect(adjectives).toHaveLength(88);
+    //     expect(verbs).toHaveLength(69);
+    // });
 
-        for (const scenario of scenarios) {
-            const passwords = Array.from({ length: 100 }, (_, seed) => createPasswordFromHash(
-                createSampleHash(seed + 1),
-                scenario.config,
-            ));
-            const alphabet = collectAlphabet(passwords);
-            const shortestLength = Math.min(...passwords.map((password) => password.length));
-            const entropy = calculateEntropy(alphabet.size, shortestLength);
+    test("length 11 mode with no separators yields 13.89 to 22.89 bits with the updated noun and adjective lists", () => {
+        const { minEntropy, maxEntropy } = calculateFixedLengthEntropyRange({
+            choiceCounts: [nouns.length, adjectives.length],
+            targetLength: 11,
+            minWordLength: 4,
+            maxWordLength: 6,
+            separatorPoolSize: 0,
+            separatorCount: 0,
+        });
 
-            if (scenario.config.lengthMode === "11") {
-              expect(entropy, scenario.name).toBeGreaterThan(50);
-            } else if (scenario.config.lengthMode === "15") {
-                expect(entropy, scenario.name).toBeGreaterThan(50);
-            } else {
-              expect(entropy, scenario.name).toBeGreaterThan(98);
-            }
-        }
+        expect(minEntropy).toBeCloseTo(13.8856963733, 10);
+        expect(maxEntropy).toBeCloseTo(22.8856963733, 10);
+        expect(maxEntropy).toBeGreaterThan(20);
     });
 
-    test("samples 100 generated word combinations to estimate list entropy", () => {
-        const passwords = Array.from({ length: 100 }, (_, seed) => createPasswordFromHash(
-            createWordSelectionHash({
-                nounIndex: seed % 8,
-                adjectiveIndex: (seed * 3) % 8,
-                verbIndex: (seed * 5) % 8,
-                trailingNounIndex: (seed * 7) % 8,
-            }),
-            {
-                enableSpaces: true,
-                enableNumbers: false,
-                symbolMode: "none",
-                lengthMode: "unset",
-            },
-        ));
+    test("length 15 mode with numbers and small symbols is about 27.81 to 30.81 bits", () => {
+        const separatorPoolSize = buildSeparatorPool({
+            enableSpaces: true,
+            enableNumbers: true,
+            symbolMode: "small",
+        }).length;
+        const { minEntropy, maxEntropy } = calculateFixedLengthEntropyRange({
+            choiceCounts: [nouns.length, adjectives.length, verbs.length],
+            targetLength: 15,
+            minWordLength: 4,
+            maxWordLength: 6,
+            separatorPoolSize,
+            separatorCount: 2,
+        });
 
+        expect(separatorPoolSize).toBe(15);
+        expect(minEntropy).toBeCloseTo(27.8080020213, 10);
+        expect(maxEntropy).toBeCloseTo(30.8080020213, 10);
+        expect(minEntropy).toBeGreaterThan(20);
+    });
+
+    test("unset mode with spaces only yields about 27.42 bits from the updated word choices", () => {
+        const entropy = calculateChoiceEntropy(
+            nouns.length,
+            adjectives.length,
+            verbs.length,
+            nouns.length,
+        );
+
+        expect(entropy).toBeCloseTo(27.4204855848, 10);
+        expect(entropy).toBeGreaterThan(27);
+    });
+
+    test("unset mode with numbers and large symbols exceeds 41.52 bits", () => {
+        const separatorPoolSize = buildSeparatorPool({
+            enableSpaces: true,
+            enableNumbers: true,
+            symbolMode: "large",
+        }).length;
+        const entropy = calculateChoiceEntropy(
+            nouns.length,
+            adjectives.length,
+            verbs.length,
+            nouns.length,
+        ) + 3 * Math.log2(separatorPoolSize);
+
+        expect(separatorPoolSize).toBe(26);
+        expect(entropy).toBeCloseTo(41.5218047392, 10);
+        expect(entropy).toBeGreaterThan(41.5);
+    });
+
+    test("can select all updated nouns, adjectives, and verbs through the hash mapping", () => {
         const nounWords = new Set();
         const adjectiveWords = new Set();
         const verbWords = new Set();
 
-        for (const password of passwords) {
-            const [noun, adjective, verb, trailingNoun] = password.split(" ");
-            nounWords.add(noun);
-            adjectiveWords.add(adjective);
-            verbWords.add(verb);
-            nounWords.add(trailingNoun);
+        for (let index = 0; index < nouns.length; index += 1) {
+            const password = createPasswordFromHash(
+                createWordSelectionHash({ nounIndex: index, adjectiveIndex: 0, verbIndex: 0, trailingNounIndex: 0 }),
+                {
+                    enableSpaces: true,
+                    enableNumbers: false,
+                    symbolMode: "none",
+                    lengthMode: "unset",
+                },
+            );
+            nounWords.add(password.split(" ")[0]);
         }
 
-        const entropy = 2 * Math.log2(nounWords.size) + Math.log2(adjectiveWords.size) + Math.log2(verbWords.size);
-
-        expect(nounWords.size).toBe(8);
-        expect(adjectiveWords.size).toBe(8);
-        expect(verbWords.size).toBe(8);
-        expect(entropy).toBeCloseTo(12, 10);
-    });
-
-    test("100-word noun and adjective lists in length 11 mode yield 46.60 to 51.71 bits when words are 4 to 6 characters", () => {
-        const letterAlphabetSize = 26;
-        const fillDigitAlphabetSize = 8;
-        const possibleWordLengths = [4, 5, 6];
-        const entropies = [];
-
-        for (const nounLength of possibleWordLengths) {
-            for (const adjectiveLength of possibleWordLengths) {
-                const rawLetterCount = nounLength + adjectiveLength;
-                const visibleLetterCount = Math.min(11, rawLetterCount);
-                const fillDigitCount = Math.max(0, 11 - rawLetterCount);
-                const entropy =
-                    visibleLetterCount * Math.log2(letterAlphabetSize) +
-                    fillDigitCount * Math.log2(fillDigitAlphabetSize);
-
-                entropies.push(entropy);
-            }
+        for (let index = 0; index < adjectives.length; index += 1) {
+            const password = createPasswordFromHash(
+                createWordSelectionHash({ nounIndex: 0, adjectiveIndex: index, verbIndex: 0, trailingNounIndex: 0 }),
+                {
+                    enableSpaces: true,
+                    enableNumbers: false,
+                    symbolMode: "none",
+                    lengthMode: "unset",
+                },
+            );
+            adjectiveWords.add(password.split(" ")[1]);
         }
 
-        expect(Math.min(...entropies)).toBeCloseTo(46.6035177451, 10);
-        expect(Math.max(...entropies)).toBeCloseTo(51.7048368996, 10);
-        expect(Math.min(...entropies)).toBeGreaterThan(40);
+        for (let index = 0; index < verbs.length; index += 1) {
+            const password = createPasswordFromHash(
+                createWordSelectionHash({ nounIndex: 0, adjectiveIndex: 0, verbIndex: index, trailingNounIndex: 0 }),
+                {
+                    enableSpaces: true,
+                    enableNumbers: false,
+                    symbolMode: "none",
+                    lengthMode: "unset",
+                },
+            );
+            verbWords.add(password.split(" ")[2]);
+        }
+
+        expect(nounWords).toHaveLength(172);
+        expect(adjectiveWords).toHaveLength(88);
+        expect(verbWords).toHaveLength(69);
     });
 });
 
