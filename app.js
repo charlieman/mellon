@@ -602,7 +602,12 @@ async function registerServiceWorker() {
     }
 
     try {
-        // await navigator.serviceWorker.register("./sw.js");
+        const registration = await navigator.serviceWorker.register("./sw.js");
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") {
+                registration.update();
+            }
+        });
     } catch (error) {
         console.error("Service worker registration failed", error);
     }
